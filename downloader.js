@@ -46,23 +46,47 @@ async function getPokemonPictureUrl(targetId = getRandomPokemonId()){
 	// Convert the response into usable JSON 
 	let data = await response.json().catch(error => {
 		throw new Error("API did not return valid JSON.");
-	});
-
+	}); 
 
 	// Not optimised, it makes unnecessary variables
 	// let imageUrl = data.sprites.other["official-artwork"].front_default;
 	// return imageUrl;
 
 	// More-optimised, no extra junk variables
-	return data.sprites.other["official-artwork"].front_shiny;
-    
+	return data.sprites.other["official-artwork"].front_default;
 }
 
 
 // Download that image and save it to the computer 
 // Return the downloaded image's file path 
 async function savePokemonPictureToDisk(targetUrl, targetDownloadFilename, targetDownloadDirectory = "."){
+	// Fetch request to the image URL 
+	let imageData = await fetch(targetUrl).catch((error) => {
+		throw new Error("Image failed to download.");
+	});
 
+	// Check if target directory exists
+	if (!fs.existsSync(targetDownloadDirectory)){
+		// Make a directory if we need to
+		await mkdir(targetDownloadDirectory);
+	}
+
+	// Create a JS-friendly file path
+	let fullFileDestination = path.join(targetDownloadDirectory, targetDownloadFilename);
+	// someFolder, CoolPokemon.png 
+	// /someFolder/CoolPokemon.png 
+	// \someFolder\CoolPokemon.png 
+
+	// Stream the image from the fetch to the computer 
+	let fileDownloadStream = fs.createWriteStream(fullFileDestination);
+
+	//    get data as bytes from the web request --- pipe the bytes into the hard drive 
+	await finished(Readable.fromWeb(imageData.body)).pipe(fileDownloadStream).catch(error => {
+		throw new Error("Failed to save content to disk.");
+	});
+
+	// Return the saved image location 
+	return fullFileDestination;
 }
 
 
