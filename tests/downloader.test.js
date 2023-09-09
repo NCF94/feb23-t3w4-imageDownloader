@@ -14,7 +14,7 @@ describe("Retrieve a Pokemon URL", () => {
 				}
 			}
 		}
-	}
+	} 
 
 	global.fetch = jest.fn(() => {
 		console.log("Fetch has been replaced with a Jest mock!");
